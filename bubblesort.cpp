@@ -19,6 +19,7 @@ void BubbleSort::setItem(VisualSort *item)
 
 void BubbleSort::sort()
 {
+    qDebug() << Q_FUNC_INFO;
     for(int i = 0; i < _size; i++)
     {
         for (int j = 0; j < _size - i - 1; j++)
@@ -40,6 +41,7 @@ void BubbleSort::run()
 
 void BubbleSort::init(const int &size, const int &max)
 {
+    qDebug() << Q_FUNC_INFO;
     if (size <=0 || max <= 0)
         return;
 

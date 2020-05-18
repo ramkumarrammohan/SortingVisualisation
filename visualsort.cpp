@@ -1,5 +1,6 @@
 #include "visualsort.h"
 #include "bubblesort.h"
+#include "selectionsort.h"
 
 #include <QPainter>
 #include <QThread>
@@ -13,8 +14,11 @@
 VisualSort::VisualSort(QQuickPaintedItem *parent) :
     QQuickPaintedItem(parent)
 {
-    _sortalgo = new BubbleSort;
-    connect(_sortalgo, SIGNAL(updateItem()), this, SLOT(update()), Qt::QueuedConnection);
+//    _sortalgo = new BubbleSort;
+    _selectionSort = new SelectionSort;
+
+//    connect(_sortalgo, SIGNAL(updateItem()), this, SLOT(update()), Qt::QueuedConnection);
+    connect(_selectionSort, SIGNAL(updateItem()), this, SLOT(update()), Qt::QueuedConnection);
 }
 
 void VisualSort::paint(QPainter *painter)
@@ -33,7 +37,8 @@ void VisualSort::paint(QPainter *painter)
     painter->setPen(pen);
     for(int i = 0; i < this->width(); i++)
     {
-        painter->drawLine(i, this->height(), i, _sortalgo->_data[i]);
+//        painter->drawLine(i, this->height(), i, _sortalgo->_data[i]);
+        painter->drawLine(i, this->height(), i, _selectionSort->_data[i]);
     }
 }
 
@@ -43,12 +48,15 @@ void VisualSort::start()
     {
         int size = this->width();
         int max = this->height();
-        _sortalgo->setItem(this);
-        _sortalgo->init(size, max);
+//        _sortalgo->setItem(this);
+//        _sortalgo->init(size, max);
+        _selectionSort->setItem(this);
+        _selectionSort->init(size, max);
         setInit(true);
     } else
     {
-        _sortalgo->start();
+//        _sortalgo->start();
+        _selectionSort->start();
     }
 }
 

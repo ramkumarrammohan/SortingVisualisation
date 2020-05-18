@@ -15,7 +15,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
     bubblesort.cpp \
-    visualsort.cpp
+    visualsort.cpp \
+    selectionsort.cpp
 
 RESOURCES += qml.qrc
 
@@ -32,4 +33,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     bubblesort.h \
-    visualsort.h
+    visualsort.h \
+    selectionsort.h

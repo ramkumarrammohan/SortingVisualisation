@@ -8,7 +8,7 @@ Window {
     visible: true
     width: 640
     height: 480
-    title: qsTr("Hello World")
+    title: qsTr("Sorting visual")
 
     Column {
         spacing: 10
@@ -21,7 +21,7 @@ Window {
         }
         Button {
             id: buttonId
-            text: visualSortId.init ? "Start" : "Init"
+            text: visualSortId.init ? "Sort" : "Init"
             width: parent.width
             onClicked: visualSortId.start()
             background: Rectangle {

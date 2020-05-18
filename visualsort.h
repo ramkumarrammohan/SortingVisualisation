@@ -6,6 +6,7 @@
 
 //class QObject;
 class BubbleSort;
+class SelectionSort;
 class VisualSort : public QQuickPaintedItem
 {
     Q_OBJECT
@@ -32,6 +33,7 @@ protected:
 private:
     bool _init = false;
     BubbleSort *_sortalgo = nullptr;
+    SelectionSort *_selectionSort = nullptr;
 };
 
 #endif // VISUALSORT_H
