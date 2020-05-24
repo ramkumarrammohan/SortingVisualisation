@@ -16,7 +16,8 @@ SOURCES += \
         main.cpp \
     bubblesort.cpp \
     visualsort.cpp \
-    selectionsort.cpp
+    selectionsort.cpp \
+    basesort.cpp
 
 RESOURCES += qml.qrc
 
@@ -34,4 +35,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     bubblesort.h \
     visualsort.h \
-    selectionsort.h
+    selectionsort.h \
+    basesort.h

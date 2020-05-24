@@ -5,35 +5,68 @@
 #include <QObject>
 
 //class QObject;
-class BubbleSort;
-class SelectionSort;
+class BaseSort;
 class VisualSort : public QQuickPaintedItem
 {
     Q_OBJECT
-    Q_PROPERTY(bool init READ init WRITE setInit NOTIFY initChanged)
+    Q_PROPERTY(Sort currentSort READ currentSort WRITE setCurrentSort NOTIFY currentSortChanged)
+    Q_PROPERTY(State currentState READ currentState WRITE setCurrentState NOTIFY currentStateChanged)
 public:
-    VisualSort(QQuickPaintedItem *parent = nullptr);
-
-    Q_INVOKABLE void start();
-    Q_INVOKABLE void drawCall();
-
-    bool init() const
+    enum Sort
     {
-        return _init;
+        INVALID = 0,
+        BUBBLE_SORT,
+        SELECTION_SORT,
+    };
+    Q_ENUMS(Sort)
+    enum State
+    {
+        INVAL = 0,
+        INIT,
+        UN_SORTED,
+        SORTING,
+        SORTED
+    };
+    Q_ENUMS(State)
+    VisualSort(QQuickPaintedItem *parent = nullptr);
+    ~VisualSort();
+
+    Q_INVOKABLE void changeState();
+
+    Sort currentSort() const
+    {
+        return _currentSort;
+    }
+    State currentState() const
+    {
+        return _currentState;
     }
 
-    void setInit(const bool &value);
+    void setCurrentSort(const Sort &sort);
+    void setCurrentState(const State &state);
+
+public slots:
+    void onUpdateItemReceived(const int sortedIndexStart, const int sortedIndexEnd);
+    void onSortingDoneReceived();
 
 signals:
-    void initChanged(bool init);
+    void currentSortChanged(Sort sort);
+    void currentStateChanged(State state);
 
 protected:
     void paint(QPainter *painter);
 
+private slots:
+    void onCurrentSortChanged(Sort sortIndex);
+
 private:
-    bool _init = false;
-    BubbleSort *_sortalgo = nullptr;
-    SelectionSort *_selectionSort = nullptr;
+    Sort _currentSort = Sort::INVALID;
+    State _currentState = State::INVAL;
+    int _sortedIndexStart = -1;
+    int _sortedIndexEnd = -1;
+    BaseSort *_sortAlgorithm = nullptr;
+    QString _stateStrings[5] = {"Invalid", "Init", "UnSorted",
+                              "Sorting", "Sorted"};
 };
 
 #endif // VISUALSORT_H

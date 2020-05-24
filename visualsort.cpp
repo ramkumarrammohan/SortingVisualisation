@@ -3,22 +3,27 @@
 #include "selectionsort.h"
 
 #include <QPainter>
-#include <QThread>
 
-//#define PRIMARY_COLOR "#1de9b6"
-//#define SECONDARY_COLOR "#00bfa5"
-
+#define SPACING 10
+#define SORTED_COLOR "#80DEEA"
+#define UNSORTED_COLOR "#9FA8DA"
 #define PRIMARY_COLOR "#4db6ac"
 #define SECONDARY_COLOR "#00796b"
 
 VisualSort::VisualSort(QQuickPaintedItem *parent) :
     QQuickPaintedItem(parent)
 {
-//    _sortalgo = new BubbleSort;
-    _selectionSort = new SelectionSort;
+    connect(this, SIGNAL(widthChanged()), this, SLOT(update()));
+    connect(this, &VisualSort::currentSortChanged, this, &VisualSort::onCurrentSortChanged);
+    qDebug() << "constr";
+    changeState();
+}
 
-//    connect(_sortalgo, SIGNAL(updateItem()), this, SLOT(update()), Qt::QueuedConnection);
-    connect(_selectionSort, SIGNAL(updateItem()), this, SLOT(update()), Qt::QueuedConnection);
+VisualSort::~VisualSort()
+{
+    qDebug() << Q_FUNC_INFO;
+    if(_sortAlgorithm)
+        delete _sortAlgorithm;
 }
 
 void VisualSort::paint(QPainter *painter)
@@ -30,45 +35,109 @@ void VisualSort::paint(QPainter *painter)
     painter->setRenderHint(QPainter::Antialiasing);
     painter->drawRect(this->boundingRect());
 
-    if (!_init)
+    if (_currentState == State::INVAL || _currentState == State::INIT)
         return;
 
-    QPen pen(QColor(SECONDARY_COLOR));
-    painter->setPen(pen);
-    for(int i = 0; i < this->width(); i++)
+    if (_sortAlgorithm->size() <= 0)
+        return;
+
+    QPen penSorted(QColor(SORTED_COLOR), SPACING/2);
+    QPen penUnSorted(QColor(UNSORTED_COLOR), SPACING/2);
+
+    qDebug() << QString("start,end: %1,%2").arg(_sortedIndexStart).arg(_sortedIndexEnd);
+    for(int i = 0; i < this->width() / SPACING; i++)
     {
-//        painter->drawLine(i, this->height(), i, _sortalgo->_data[i]);
-        painter->drawLine(i, this->height(), i, _selectionSort->_data[i]);
+        if (i >= _sortedIndexStart && i < _sortedIndexEnd)
+        {
+            painter->setPen(penSorted);
+        } else
+        {
+            painter->setPen(penUnSorted);
+        }
+
+        painter->drawLine(i * SPACING, this->height(), i * SPACING, _sortAlgorithm->data()[i]);
     }
 }
 
-void VisualSort::start()
+void VisualSort::onCurrentSortChanged(VisualSort::Sort sortIndex)
 {
-    if (!_init)
+    qDebug() << "sortindex: " << sortIndex;
+    if(_sortAlgorithm != nullptr)
+        delete _sortAlgorithm;
+
+    if (sortIndex == Sort::BUBBLE_SORT)
     {
-        int size = this->width();
-        int max = this->height();
-//        _sortalgo->setItem(this);
-//        _sortalgo->init(size, max);
-        _selectionSort->setItem(this);
-        _selectionSort->init(size, max);
-        setInit(true);
+       _sortAlgorithm = new BubbleSort;
+    } else if (sortIndex == Sort::SELECTION_SORT)
+    {
+        _sortAlgorithm = new SelectionSort;
     } else
     {
-//        _sortalgo->start();
-        _selectionSort->start();
+        qWarning() << "unknown sort type received";
     }
+    connect(_sortAlgorithm, SIGNAL(updateItem(int, int)), this, SLOT(onUpdateItemReceived(int, int)), Qt::QueuedConnection);
+    connect(_sortAlgorithm, SIGNAL(sortingDone()), this, SLOT(onSortingDoneReceived()), Qt::QueuedConnection);
+    setCurrentState(State::INIT);
 }
 
-void VisualSort::drawCall()
+void VisualSort::changeState()
 {
+    QString entry = _stateStrings[_currentState];
+    switch (_currentState) {
+    case State::INVAL:
+        setCurrentState(State::INIT);
+        break;
+    case State::INIT:
+    {
+        int size = this->width() / SPACING;
+        int max = this->height();
+        _sortAlgorithm->initArray(size, max);
+        setCurrentState(State::UN_SORTED);
+    }
+        break;
+    case State::UN_SORTED:
+    {
+        _sortAlgorithm->start();
+        setCurrentState(State::SORTING);
+    }
+        break;
+    case State::SORTING:
+        setCurrentState(State::SORTED);
+        break;
+    case State::SORTED:
+        setCurrentState(State::INIT);
+        break;
+    default:
+        qWarning() << Q_FUNC_INFO << " unhandled state: " << _currentState;
+        break;
+    }
+//    qDebug() << QString("(entry, exit): (%1, %2)").arg(entry).arg(_stateStrings[_currentState]);
+}
+
+void VisualSort::setCurrentSort(const VisualSort::Sort &sort)
+{
+    if (_currentSort == sort || sort == Sort::INVALID)
+        return;
+    _currentSort = sort;
+    emit currentSortChanged(sort);
+}
+
+void VisualSort::setCurrentState(const VisualSort::State &state)
+{
+    if (_currentState == state || state == State::INVAL)
+        return;
+    _currentState = state;
+    emit currentStateChanged(state);
+}
+
+void VisualSort::onUpdateItemReceived(const int sortedIndexStart, const int sortedIndexEnd)
+{
+    _sortedIndexStart = sortedIndexStart;
+    _sortedIndexEnd = sortedIndexEnd;
     this->update();
 }
 
-void VisualSort::setInit(const bool &value)
+void VisualSort::onSortingDoneReceived()
 {
-    if (_init == value)
-        return;
-    _init = value;
-    emit initChanged(value);
+    changeState();
 }
